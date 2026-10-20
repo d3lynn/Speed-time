@@ -33,6 +33,14 @@
   #dial { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
   #gauge { width: min(92vw, 60vh, 470px); height: auto; display: block; cursor: default; }
   #trip { cursor: pointer; }
+  #tripRow { display: flex; justify-content: center; margin: 2px 0 8px; }
+  #tripReset {
+    background: transparent; color: var(--fg); border: 1px solid #3a3a3a; border-radius: 999px;
+    padding: 10px 20px; min-height: 40px; font: inherit; font-size: 13px; font-weight: 600;
+    letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+  }
+  #tripReset:active { background: var(--amber); border-color: var(--amber); color: #120801; }
+  #tripReset.done { border-color: var(--amber); color: var(--amber); }
   #readout { text-align: center; }
   #value { font-size: clamp(64px, 22vw, 116px); font-weight: 700; line-height: .95; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
   #unit { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin-top: 6px; }
@@ -139,6 +147,8 @@
   </svg>
 </div>
 
+<div id="tripRow"><button id="tripReset" type="button">Reset trip</button></div>
+
 <div id="readout">
   <div id="value">--</div>
   <div id="unit">Minutes per 10 miles</div>
@@ -154,7 +164,8 @@
   const MPS_TO_MPH = 2.236936;
   const KM = 1.609344;
   const STOP_MPH = 1;
-  const ODO_KEY = 'speedtime.odometer', TRIP_KEY = 'speedtime.trip';
+  // New key names, so the 42,069 start applies even if an older value was saved on this phone.
+  const ODO_KEY = 'speedtime.odometer.v2', TRIP_KEY = 'speedtime.trip.v2';
   const range = (a, b, s) => { const r = []; for (let v = a; v <= b + 1e-9; v += s) r.push(v); return r; };
 
   // Each mode: unit name, dial ticks (positions in mph), and the value shown at each tick.
@@ -171,7 +182,7 @@
   let readMph = 0, readVel = 0;      // slower filter that feeds the numbers
   let isStopped = true, heldSpike = false;
   let lastFix = null;
-  let odo = 11020, trip = 0;   // miles
+  let odo = 42069, trip = 0;   // miles
   const $ = id => document.getElementById(id);
   const NS = 'http://www.w3.org/2000/svg';
 
@@ -232,7 +243,7 @@
       'font-size': h * 0.7, 'font-weight': 700, 'font-family': FONT, id }, g);
     el('rect', { x, y, width: w, height: h, rx: 2.5, fill: 'url(#drumShade)', 'pointer-events': 'none' }, g);
   }
-  // Vehicle odometer: six digits, starts at 11,020 miles.
+  // Vehicle odometer: six digits, starts at 42,069 miles.
   function buildOdo() {
     const g = $('odo'); g.innerHTML = '';
     const w = 15, gap = 2.5, h = 24, n = 6;
@@ -269,7 +280,13 @@
       localStorage.setItem(TRIP_KEY, String(trip));
     } catch (_) {}
   }
-  function resetTrip() { trip = 0; saveState(); renderOdo(); }
+  function resetTrip() {
+    trip = 0; saveState(); renderOdo();
+    const b = $('tripReset');
+    b.textContent = 'Trip reset'; b.classList.add('done');
+    clearTimeout(resetTrip.t);
+    resetTrip.t = setTimeout(() => { b.textContent = 'Reset trip'; b.classList.remove('done'); }, 1200);
+  }
 
   function renderValue() {
     const m = MODES[mode];
@@ -384,6 +401,7 @@
   $('start').addEventListener('click', start);
   $('readout').addEventListener('click', () => { mode = (mode + 1) % MODES.length; renderAll(true); });
   $('trip').addEventListener('click', resetTrip);
+  $('tripReset').addEventListener('click', resetTrip);
 
   loadState();
   buildOdo();
