@@ -166,8 +166,11 @@
     { name: 'Kilometers per hour',  short: 'KM/H',      kind: 'speed', calc: m => m * KM,         ticks: range(0, 300, 30).map(k => k / KM) },
   ];
 
-  let mode = 0, mph = 0, shownMph = 0;
-  let lastFix = null, recent = [];
+  let mode = 0, mph = 0;   // mph = latest GPS speed (the target both filters chase)
+  let needleMph = 0, needleVel = 0;  // needle position and velocity
+  let readMph = 0, readVel = 0;      // slower filter that feeds the numbers
+  let isStopped = true, heldSpike = false;
+  let lastFix = null;
   let odo = 11020, trip = 0;   // miles
   const $ = id => document.getElementById(id);
   const NS = 'http://www.w3.org/2000/svg';
@@ -270,8 +273,7 @@
 
   function renderValue() {
     const m = MODES[mode];
-    const stopped = shownMph < STOP_MPH;
-    $('value').textContent = stopped ? (m.kind === 'time' ? '--' : '0') : formatValue(m, shownMph);
+    $('value').textContent = isStopped ? (m.kind === 'time' ? '--' : '0') : formatValue(m, readMph);
     $('unit').textContent = m.name;
   }
   function renderChips() {
@@ -287,14 +289,13 @@
     }
     [...row.children].forEach((b, i) => {
       const m = MODES[i];
-      const stopped = shownMph < STOP_MPH;
       b.classList.toggle('on', i === mode);
-      b.querySelector('b').textContent = stopped ? (m.kind === 'time' ? '--' : '0') : formatValue(m, shownMph);
+      b.querySelector('b').textContent = isStopped ? (m.kind === 'time' ? '--' : '0') : formatValue(m, readMph);
       b.querySelector('span').textContent = m.short;
     });
   }
   function renderNeedle() {
-    $('needle').setAttribute('transform', `rotate(${angleFor(shownMph).toFixed(2)} ${CX} ${CY})`);
+    $('needle').setAttribute('transform', `rotate(${angleFor(needleMph).toFixed(2)} ${CX} ${CY})`);
   }
   let dialMode = -1;
   function renderAll(forceDial) {
@@ -302,11 +303,32 @@
     renderValue(); renderChips(); renderNeedle();
   }
 
-  // Smooth needle motion toward the latest reading.
-  function animate() {
-    shownMph += (mph - shownMph) * 0.18;
-    if (Math.abs(mph - shownMph) < 0.05) shownMph = mph;
-    renderNeedle(); renderValue(); renderChips();
+  // Critically damped follower: moves like a damped analog needle, never overshoots,
+  // and stays smooth even though GPS only reports about once per second.
+  function smoothDamp(cur, target, vel, smoothTime, dt) {
+    const omega = 2 / smoothTime, x = omega * dt;
+    const k = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    const change = cur - target;
+    const tmp = (vel + omega * change) * dt;
+    return [target + (change + tmp) * k, (vel - omega * tmp) * k];
+  }
+  const NEEDLE_TIME = 0.7;   // seconds; lower = snappier needle
+  const READ_TIME = 1.2;     // seconds; the numbers settle slower than the needle
+  let lastFrame = 0, lastText = 0, lastAngle = null;
+  function animate(now) {
+    const dt = lastFrame ? Math.min((now - lastFrame) / 1000, 0.1) : 0.016;
+    lastFrame = now;
+    [needleMph, needleVel] = smoothDamp(needleMph, mph, needleVel, NEEDLE_TIME, dt);
+    [readMph, readVel] = smoothDamp(readMph, mph, readVel, READ_TIME, dt);
+    if (Math.abs(needleMph - mph) < 0.02 && Math.abs(needleVel) < 0.02) { needleMph = mph; needleVel = 0; }
+    if (Math.abs(readMph - mph) < 0.02 && Math.abs(readVel) < 0.02) { readMph = mph; readVel = 0; }
+
+    // Hysteresis so the readout does not flicker around walking pace.
+    if (readMph < 1) isStopped = true; else if (readMph > 2) isStopped = false;
+
+    const angle = Math.round(angleFor(needleMph) * 100) / 100;
+    if (angle !== lastAngle) { lastAngle = angle; renderNeedle(); }
+    if (now - lastText >= 200) { lastText = now; renderValue(); renderChips(); }   // about 5 updates a second
     requestAnimationFrame(animate);
   }
 
@@ -332,8 +354,9 @@
 
     if (mps == null) return;
     if (mps < 0.45) mps = 0;
-    recent.push(mps); if (recent.length > 3) recent.shift();
-    mph = (recent.reduce((a, b) => a + b, 0) / recent.length) * MPS_TO_MPH;
+    const next = mps * MPS_TO_MPH;
+    if (Math.abs(next - mph) > 30 && !heldSpike) heldSpike = true;   // ignore one impossible jump
+    else { heldSpike = false; mph = next; }
     $('status').textContent = `GPS ±${Math.round(c.accuracy * 3.28084)} ft`;
     $('status').classList.add('live');
     $('error').textContent = '';
