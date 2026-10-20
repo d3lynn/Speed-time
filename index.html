@@ -57,37 +57,57 @@
 <div id="dial">
   <svg id="gauge" viewBox="0 0 300 300" role="img" aria-label="Vintage speedometer">
     <defs>
-      <radialGradient id="face" cx="50%" cy="40%" r="70%">
-        <stop offset="0" stop-color="#101010"/>
+      <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#6b6e74"/>
+        <stop offset=".35" stop-color="#1a1c1f"/>
+        <stop offset=".7" stop-color="#2c2f33"/>
+        <stop offset="1" stop-color="#0d0e10"/>
+      </linearGradient>
+      <linearGradient id="rim2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2d2d30"/>
+        <stop offset="1" stop-color="#050505"/>
+      </linearGradient>
+      <radialGradient id="face" cx="50%" cy="42%" r="68%">
+        <stop offset="0" stop-color="#17181a"/>
+        <stop offset="1" stop-color="#050506"/>
+      </radialGradient>
+      <radialGradient id="faceShade" cx="50%" cy="50%" r="50%">
+        <stop offset=".86" stop-color="#000" stop-opacity="0"/>
+        <stop offset="1" stop-color="#000" stop-opacity=".55"/>
+      </radialGradient>
+      <linearGradient id="drumShade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#000" stop-opacity=".75"/>
+        <stop offset=".28" stop-color="#000" stop-opacity="0"/>
+        <stop offset=".72" stop-color="#000" stop-opacity="0"/>
+        <stop offset="1" stop-color="#000" stop-opacity=".8"/>
+      </linearGradient>
+      <linearGradient id="needleBody" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#d93d0c"/>
+        <stop offset=".45" stop-color="#ff5a22"/>
+        <stop offset="1" stop-color="#e8470f"/>
+      </linearGradient>
+      <radialGradient id="hubGrad" cx="38%" cy="32%" r="75%">
+        <stop offset="0" stop-color="#2a2a2d"/>
+        <stop offset=".6" stop-color="#0e0e10"/>
         <stop offset="1" stop-color="#030303"/>
       </radialGradient>
-      <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#3a3a3a"/>
-        <stop offset="1" stop-color="#0a0a0a"/>
+      <linearGradient id="glare" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity=".10"/>
+        <stop offset="1" stop-color="#fff" stop-opacity="0"/>
       </linearGradient>
-      <radialGradient id="hub" cx="40%" cy="35%" r="65%">
-        <stop offset="0" stop-color="#3a3a3a"/>
-        <stop offset="1" stop-color="#050505"/>
-      </radialGradient>
-      <linearGradient id="needleBody" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#b53a12"/>
-        <stop offset=".5" stop-color="#ff6a2a"/>
-        <stop offset="1" stop-color="#b53a12"/>
-      </linearGradient>
-      <linearGradient id="tail" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#050505"/>
-        <stop offset=".5" stop-color="#2a2a2a"/>
-        <stop offset="1" stop-color="#050505"/>
-      </linearGradient>
-      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity=".8"/>
+      <clipPath id="faceClip"><circle cx="150" cy="150" r="136"/></clipPath>
+      <filter id="needleShadow" filterUnits="userSpaceOnUse" x="0" y="0" width="300" height="300">
+        <feDropShadow dx="2" dy="3.2" stdDeviation="1.6" flood-color="#000" flood-opacity=".65"/>
       </filter>
     </defs>
 
     <!-- Bezel and face -->
-    <circle cx="150" cy="150" r="148" fill="url(#ring)"/>
-    <circle cx="150" cy="150" r="141" fill="#000"/>
+    <circle cx="150" cy="150" r="149" fill="url(#rim)"/>
+    <circle cx="150" cy="150" r="146" fill="#0a0a0b"/>
+    <circle cx="150" cy="150" r="144" fill="url(#rim2)"/>
+    <circle cx="150" cy="150" r="138.5" fill="#000"/>
     <circle cx="150" cy="150" r="136" fill="url(#face)"/>
+    <circle cx="150" cy="150" r="136" fill="url(#faceShade)"/>
 
     <!-- Scale -->
     <g id="minor"></g>
@@ -95,25 +115,27 @@
     <g id="labels" font-family="'Helvetica Neue', 'Arial Narrow', Arial, sans-serif" font-weight="700"></g>
 
     <!-- Vehicle odometer (six digits) -->
-    <g id="odo" font-family="'Courier New', Menlo, monospace" font-weight="700"></g>
+    <g id="odo"></g>
 
     <!-- Trip odometer (tap to reset) -->
-    <g id="trip">
-      <rect x="110" y="178" width="80" height="22" rx="3" fill="#000" stroke="#1d1d1d"/>
-      <g id="tripDigits" font-family="'Courier New', Menlo, monospace" font-weight="700"></g>
-    </g>
+    <g id="trip"><g id="tripDigits"></g></g>
 
     <!-- Unit and brand text -->
     <text id="dialUnit" x="150" y="226" text-anchor="middle" fill="#f1efe9" font-size="13" font-weight="700" letter-spacing="1.2" font-family="'Helvetica Neue', Arial, sans-serif"></text>
     <text x="150" y="242" text-anchor="middle" fill="#6a675f" font-size="7.5" letter-spacing="2.4" font-family="'Helvetica Neue', Arial, sans-serif">SPEED TIME</text>
 
-    <!-- Needle -->
-    <g id="needle" filter="url(#shadow)">
-      <polygon points="150,38 151.4,150 148.6,150" fill="#ff5a1f"/>
-      <polygon points="148.6,150 151.4,150 151.8,163 148.2,163" fill="#ff5a1f"/>
+    <!-- Hub, needle, glass -->
+    <circle cx="150" cy="150" r="17" fill="url(#hubGrad)" stroke="#000" stroke-width="1"/>
+    <circle cx="150" cy="150" r="14.5" fill="none" stroke="#2a2a2d" stroke-width=".6"/>
+    <g filter="url(#needleShadow)">
+      <g id="needle">
+        <polygon points="147.5,43 152.5,43 153.4,166 146.6,166" fill="url(#needleBody)"/>
+        <polygon points="148.3,43 149.4,43 149.6,166 148.4,166" fill="#ff9a70" opacity=".35"/>
+      </g>
     </g>
-    <circle cx="150" cy="150" r="11" fill="#0a0a0a" stroke="#2c2c2c" stroke-width="1" filter="url(#shadow)"/>
-    <circle cx="150" cy="150" r="5" fill="url(#hub)"/>
+    <g clip-path="url(#faceClip)" pointer-events="none">
+      <ellipse cx="100" cy="62" rx="125" ry="62" transform="rotate(-24 100 62)" fill="url(#glare)"/>
+    </g>
   </svg>
 </div>
 
@@ -137,7 +159,7 @@
 
   // Each mode: unit name, dial ticks (positions in mph), and the value shown at each tick.
   const MODES = [
-    { name: 'Minutes per 10 miles', short: 'MIN/10 MI', kind: 'time',  calc: m => 600 / m,        ticks: [20, 30, 40, 60, 90, 120, 150, 180] },
+    { name: 'Minutes per 10 miles', short: 'MIN/10 MI', kind: 'time',  calc: m => 600 / m,        ticks: [30, 40, 60, 90, 120, 150, 180] },
     { name: 'Minutes per mile',     short: 'MIN/MI',    kind: 'time',  calc: m => 60 / m,         ticks: range(30, 180, 30) },
     { name: 'Minutes per km',       short: 'MIN/KM',    kind: 'time',  calc: m => 60 / (m * KM),  ticks: range(30, 180, 30) },
     { name: 'Miles per hour',       short: 'MPH',       kind: 'speed', calc: m => m,              ticks: range(0, 180, 30) },
@@ -191,7 +213,7 @@
       const [tx, ty] = pt(deg, 91);
       const t = el('text', {
         x: tx, y: ty + 6, 'text-anchor': 'middle', fill: '#f5f3ec',
-        'font-size': m.kind === 'time' ? 13 : 20, 'font-weight': 800,
+        'font-size': m.kind === 'time' ? 12.5 : 20, 'font-weight': 800,
         'font-family': "'Helvetica Neue', Arial, sans-serif"
       }, labels);
       t.textContent = formatValue(m, v);
@@ -199,29 +221,28 @@
     $('dialUnit').textContent = m.short;
   }
 
+  // Odometer windows: a dark drum with shading, white digit.
+  const FONT = "'Helvetica Neue', Arial, sans-serif";
+  function drum(g, x, y, w, h, id, invert) {
+    el('rect', { x, y, width: w, height: h, rx: 2.5, fill: invert ? '#e9e5d7' : '#050505', stroke: '#2b2b2d', 'stroke-width': .8 }, g);
+    el('text', { x: x + w / 2, y: y + h * 0.745, 'text-anchor': 'middle', fill: invert ? '#0a0a0a' : '#f1efe9',
+      'font-size': h * 0.7, 'font-weight': 700, 'font-family': FONT, id }, g);
+    el('rect', { x, y, width: w, height: h, rx: 2.5, fill: 'url(#drumShade)', 'pointer-events': 'none' }, g);
+  }
   // Vehicle odometer: six digits, starts at 11,020 miles.
   function buildOdo() {
-    const g = $('odo');
-    g.innerHTML = '';
-    const boxW = 19, gap = 4, n = 6;
-    const x0 = 150 - (n * boxW + (n - 1) * gap) / 2;
-    for (let i = 0; i < n; i++) {
-      const x = x0 + i * (boxW + gap);
-      el('rect', { x, y: 116, width: boxW, height: 26, rx: 3, fill: '#000', stroke: '#1d1d1d' }, g);
-      el('text', { x: x + boxW / 2, y: 135, 'text-anchor': 'middle', fill: '#f1efe9', 'font-size': 20, id: 'odo' + i }, g);
-    }
+    const g = $('odo'); g.innerHTML = '';
+    const w = 15, gap = 2.5, h = 24, n = 6;
+    const x0 = 150 - (n * w + (n - 1) * gap) / 2;
+    for (let i = 0; i < n; i++) drum(g, x0 + i * (w + gap), 108, w, h, 'odo' + i, false);
   }
-  // Trip odometer: three digits and tenths.
+  // Trip odometer: three digits and a tenths wheel (light, like the real thing).
   function buildTrip() {
-    const g = $('tripDigits');
-    g.innerHTML = '';
-    const boxW = 16, gap = 3;
-    const x0 = 150 - (4 * boxW + 3 * gap) / 2;
-    for (let i = 0; i < 4; i++) {
-      const x = x0 + i * (boxW + gap);
-      el('text', { x: x + boxW / 2, y: 194, 'text-anchor': 'middle', fill: i === 3 ? '#ff5a1f' : '#f1efe9', 'font-size': 15, id: 'trip' + i }, g);
-    }
-    el('text', { x: x0 + 3 * (boxW + gap) - 2, y: 194, 'text-anchor': 'middle', fill: '#ff5a1f', 'font-size': 15 }, g).textContent = '';
+    const g = $('tripDigits'); g.innerHTML = '';
+    const w = 14, gap = 2, h = 20, n = 4, y = 176;
+    const x0 = 150 - (n * w + (n - 1) * gap) / 2;
+    el('rect', { x: x0 - 5, y: y - 5, width: n * w + (n - 1) * gap + 10, height: h + 10, fill: 'transparent' }, g);
+    for (let i = 0; i < n; i++) drum(g, x0 + i * (w + gap), y, w, h, 'trip' + i, i === n - 1);
   }
   function renderOdo() {
     const digits = String(Math.floor(odo)).padStart(6, '0').slice(-6);
