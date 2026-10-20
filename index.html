@@ -6,42 +6,42 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Speed Time">
-<meta name="theme-color" content="#07090c">
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Speed%20Time%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2307090c%22%2C%22theme_color%22%3A%22%2307090c%22%7D">
+<meta name="theme-color" content="#050607">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Speed%20Time%22%2C%22short_name%22%3A%22Speed%20Time%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050607%22%2C%22theme_color%22%3A%22%23050607%22%7D">
 <title>Speed Time</title>
 <style>
-  :root { color-scheme: dark; --bg:#07090c; --panel:#0f1318; --line:#1d242e; --fg:#f4f6f8; --dim:#7b8594; --accent:#ffb400; --red:#ff3b2f; --blue:#4da3ff; }
+  :root { color-scheme: dark; --bg:#050607; --panel:#0c0f13; --line:#1b2028; --fg:#f2f4f7; --dim:#6f7886; --blue:#1c69d4; --blue-hi:#5fa8ff; --red:#e10600; }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    background: radial-gradient(120% 80% at 50% 35%, #141a22 0%, var(--bg) 60%);
+    background: radial-gradient(120% 75% at 50% 38%, #111419 0%, var(--bg) 62%);
     color: var(--fg);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
     display: flex; flex-direction: column;
     padding: calc(env(safe-area-inset-top) + 12px) max(16px, env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 14px) max(16px, env(safe-area-inset-right));
     -webkit-user-select: none; user-select: none; overflow: hidden;
   }
   header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   #status { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
-  #status.live { color: var(--accent); }
+  #status.live { color: var(--blue-hi); }
   #start {
-    background: var(--accent); color: #111; border: 0; border-radius: 999px;
-    padding: 10px 22px; font-size: 15px; font-weight: 700; letter-spacing: .02em; cursor: pointer;
+    background: var(--blue); color: #fff; border: 0; border-radius: 999px;
+    padding: 10px 22px; font-size: 15px; font-weight: 600; letter-spacing: .02em; cursor: pointer;
   }
   #start:disabled { background: var(--line); color: var(--dim); }
   #dial { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
-  #gauge { width: min(92vw, 62vh, 460px); height: auto; display: block; }
-  #readout { text-align: center; margin-top: -2px; }
-  #value { font-size: clamp(64px, 22vw, 120px); font-weight: 700; line-height: .95; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
-  #unit { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-top: 6px; }
+  #gauge { width: min(92vw, 60vh, 460px); height: auto; display: block; }
+  #readout { text-align: center; }
+  #value { font-size: clamp(64px, 22vw, 116px); font-weight: 700; line-height: .95; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+  #unit { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--blue-hi); margin-top: 6px; }
   #units { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 16px; }
   .chip {
     background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
     padding: 9px 4px; text-align: center; color: var(--dim); font: inherit; cursor: pointer;
   }
-  .chip b { display: block; font-size: 17px; color: var(--fg); font-variant-numeric: tabular-nums; }
-  .chip span { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
-  .chip.on { border-color: var(--accent); color: var(--accent); }
+  .chip b { display: block; font-size: 16px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .chip span { font-size: 10px; letter-spacing: .04em; }
+  .chip.on { border-color: var(--blue-hi); color: var(--blue-hi); }
   #error { min-height: 18px; margin-top: 10px; font-size: 13px; color: var(--red); text-align: center; }
 </style>
 </head>
@@ -55,32 +55,35 @@
 <div id="dial">
   <svg id="gauge" viewBox="0 0 300 300" role="img" aria-label="Speedometer">
     <defs>
-      <radialGradient id="face" cx="50%" cy="40%" r="65%">
-        <stop offset="0" stop-color="#1a2029"/>
-        <stop offset="1" stop-color="#07090c"/>
+      <radialGradient id="face" cx="50%" cy="35%" r="70%">
+        <stop offset="0" stop-color="#15181d"/>
+        <stop offset="1" stop-color="#040506"/>
       </radialGradient>
       <linearGradient id="bezel" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#3b4450"/>
-        <stop offset=".5" stop-color="#11151b"/>
-        <stop offset="1" stop-color="#2a313b"/>
+        <stop offset="0" stop-color="#4a525e"/>
+        <stop offset=".45" stop-color="#101318"/>
+        <stop offset="1" stop-color="#343b46"/>
       </linearGradient>
       <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feGaussianBlur stdDeviation="2.2" result="b"/>
         <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
     </defs>
-    <circle cx="150" cy="150" r="146" fill="url(#bezel)"/>
-    <circle cx="150" cy="150" r="138" fill="url(#face)"/>
+    <circle cx="150" cy="150" r="147" fill="url(#bezel)"/>
+    <circle cx="150" cy="150" r="139" fill="#000"/>
+    <circle cx="150" cy="150" r="137" fill="url(#face)"/>
     <g id="arcs"></g>
-    <g id="ticks"></g>
-    <g id="labels"></g>
-    <g id="redline"></g>
-    <text x="150" y="208" text-anchor="middle" fill="#7b8594" font-size="11" letter-spacing="3">MPH</text>
+    <g id="minor"></g>
+    <g id="major"></g>
+    <g id="labels" font-family="inherit" font-weight="600"></g>
+    <text id="dialUnit" x="150" y="206" text-anchor="middle" fill="#5fa8ff" font-size="12" letter-spacing="1.5"></text>
+    <text x="150" y="232" text-anchor="middle" fill="#3b4350" font-size="9" letter-spacing="3">SPEED TIME</text>
     <g id="needle" filter="url(#glow)">
-      <polygon points="150,44 154,150 146,150" fill="#ff3b2f"/>
-      <circle cx="150" cy="150" r="7" fill="#ff3b2f"/>
+      <polygon points="150,40 152.2,150 147.8,150" fill="#f2f4f7"/>
+      <polygon points="150,150 152.2,172 147.8,172" fill="#5fa8ff"/>
+      <circle cx="150" cy="150" r="8" fill="#1c69d4"/>
+      <circle cx="150" cy="150" r="3" fill="#f2f4f7"/>
     </g>
-    <circle cx="150" cy="150" r="3" fill="#07090c"/>
   </svg>
 </div>
 
@@ -94,28 +97,28 @@
 
 <script>
   const MAX_MPH = 140;
-  const START_DEG = -135, SWEEP = 270;   // gauge sweep, 0 degrees = 12 o'clock
+  const START_DEG = -135, SWEEP = 270;   // 0 degrees = 12 o'clock
   const CX = 150, CY = 150;
   const MPS_TO_MPH = 2.236936;
   const KM = 1.609344;
   const STOP_MPH = 1;
+  const range = (a, b, s) => { const r = []; for (let v = a; v <= b + 1e-9; v += s) r.push(v); return r; };
 
+  // Each mode: unit name, dial ticks (positions expressed in mph), and the value shown at each tick.
   const MODES = [
-    { name: 'Minutes per 10 miles', short: 'min/10 mi', kind: 'time',  calc: m => 600 / m },
-    { name: 'Minutes per mile',     short: 'min/mi',    kind: 'time',  calc: m => 60 / m },
-    { name: 'Minutes per km',       short: 'min/km',    kind: 'time',  calc: m => 60 / (m * KM) },
-    { name: 'Miles per hour',       short: 'mph',       kind: 'speed', calc: m => m },
-    { name: 'Kilometers per hour',  short: 'km/h',      kind: 'speed', calc: m => m * KM },
+    { name: 'Minutes per 10 miles', short: 'min/10 mi', kind: 'time',  calc: m => 600 / m,            ticks: [20, 30, 40, 60, 80, 100, 120, 140] },
+    { name: 'Minutes per mile',     short: 'min/mi',    kind: 'time',  calc: m => 60 / m,             ticks: range(20, 140, 20) },
+    { name: 'Minutes per km',       short: 'min/km',    kind: 'time',  calc: m => 60 / (m * KM),      ticks: range(20, 140, 20) },
+    { name: 'Miles per hour',       short: 'mph',       kind: 'speed', calc: m => m,                  ticks: range(0, 140, 20) },
+    { name: 'Kilometers per hour',  short: 'km/h',      kind: 'speed', calc: m => m * KM,             ticks: range(0, 220, 20).map(k => k / KM) },
   ];
 
   let mode = 0, mph = 0, shownMph = 0;
   let lastFix = null, recent = [];
-  let watchId = null;
   const $ = id => document.getElementById(id);
   const NS = 'http://www.w3.org/2000/svg';
 
-  // --- Gauge geometry ---
-  const angleFor = v => START_DEG + SWEEP * (v / MAX_MPH);
+  const angleFor = v => START_DEG + SWEEP * (Math.min(v, MAX_MPH) / MAX_MPH);
   const pt = (deg, r) => {
     const rad = deg * Math.PI / 180;
     return [CX + r * Math.sin(rad), CY - r * Math.cos(rad)];
@@ -126,49 +129,62 @@
     parent.appendChild(n);
     return n;
   }
-  function buildGauge() {
-    const arcs = $('arcs'), ticks = $('ticks'), labels = $('labels'), red = $('redline');
-    // Coloured track up to the redline at 120 mph
-    const band = (from, to, color, w) => {
-      const [x1, y1] = pt(angleFor(from), 118), [x2, y2] = pt(angleFor(to), 118);
-      const large = (angleFor(to) - angleFor(from)) > 180 ? 1 : 0;
-      el('path', { d: `M${x1},${y1} A118,118 0 ${large} 1 ${x2},${y2}`, fill: 'none', stroke: color, 'stroke-width': w, 'stroke-linecap': 'butt' }, arcs);
-    };
-    band(0, MAX_MPH, '#1f2631', 6);
-    band(0, 100, '#e8edf3', 1.2);
-    band(120, MAX_MPH, '#ff3b2f', 6);
-    el('path', { d: '', fill: 'none' }, arcs).remove();
-
-    for (let v = 0; v <= MAX_MPH; v += 5) {
-      const major = v % 20 === 0;
-      const deg = angleFor(v);
-      const [x1, y1] = pt(deg, major ? 112 : 118);
-      const [x2, y2] = pt(deg, 130);
-      el('line', { x1, y1, x2, y2, stroke: v >= 120 ? '#ff3b2f' : '#e8edf3', 'stroke-width': major ? 2.4 : 1, 'stroke-linecap': 'round' }, ticks);
-      if (major) {
-        const [tx, ty] = pt(deg, 96);
-        const t = el('text', { x: tx, y: ty + 5, 'text-anchor': 'middle', fill: v >= 120 ? '#ff3b2f' : '#e8edf3', 'font-size': 15, 'font-weight': 700, 'font-family': 'inherit' }, labels);
-        t.textContent = v;
-      }
-    }
-  }
-
-  // --- Readout ---
   function fmtTime(minutes) {
     if (!isFinite(minutes) || minutes > 99) return '--';
     const total = Math.round(minutes * 60);
     return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
   }
+  function formatValue(m, mphVal) {
+    const v = m.calc(mphVal);
+    return m.kind === 'time' ? fmtTime(v) : Math.round(v).toString();
+  }
+
+  // Static arcs: blue scale up to 120 mph, red redline 120 to 140.
+  function buildArcs() {
+    const g = $('arcs');
+    const band = (from, to, color, w, r) => {
+      const [x1, y1] = pt(angleFor(from), r), [x2, y2] = pt(angleFor(to), r);
+      const large = (angleFor(to) - angleFor(from)) > 180 ? 1 : 0;
+      el('path', { d: `M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2}`, fill: 'none', stroke: color, 'stroke-width': w }, g);
+    };
+    band(0, MAX_MPH, '#1a1f27', 3, 124);
+    band(0, 120, '#1c69d4', 3, 124);
+    band(120, MAX_MPH, '#e10600', 3.5, 124);
+  }
+
+  // Ticks and labels follow the selected unit.
+  function buildDial() {
+    const m = MODES[mode];
+    const major = $('major'), minor = $('minor'), labels = $('labels');
+    major.innerHTML = ''; minor.innerHTML = ''; labels.innerHTML = '';
+
+    const isMajor = v => m.ticks.some(t => Math.abs(t - v) < 0.01);
+    for (let v = 0; v <= MAX_MPH; v += 5) {
+      if (isMajor(v)) continue;
+      const deg = angleFor(v);
+      const [x1, y1] = pt(deg, 116), [x2, y2] = pt(deg, 124);
+      el('line', { x1, y1, x2, y2, stroke: v >= 120 ? '#e10600' : '#8a93a0', 'stroke-width': 1, 'stroke-linecap': 'round' }, minor);
+    }
+    m.ticks.forEach(v => {
+      const deg = angleFor(v);
+      const [x1, y1] = pt(deg, 108), [x2, y2] = pt(deg, 126);
+      const isRed = v >= 120 - 0.01;
+      el('line', { x1, y1, x2, y2, stroke: isRed ? '#e10600' : '#f2f4f7', 'stroke-width': 2.6, 'stroke-linecap': 'round' }, major);
+      const [tx, ty] = pt(deg, 92);
+      const t = el('text', {
+        x: tx, y: ty + 5, 'text-anchor': 'middle',
+        fill: isRed ? '#e10600' : '#f2f4f7',
+        'font-size': m.kind === 'time' ? 12 : 16
+      }, labels);
+      t.textContent = formatValue(m, v);
+    });
+    $('dialUnit').textContent = m.short;
+  }
+
   function renderValue() {
     const m = MODES[mode];
     const stopped = shownMph < STOP_MPH;
-    let text;
-    if (stopped) text = m.kind === 'time' ? '--' : '0';
-    else {
-      const v = m.calc(shownMph);
-      text = m.kind === 'time' ? fmtTime(v) : Math.round(v).toString();
-    }
-    $('value').textContent = text;
+    $('value').textContent = stopped ? (m.kind === 'time' ? '--' : '0') : formatValue(m, shownMph);
     $('unit').textContent = m.name;
   }
   function renderChips() {
@@ -178,32 +194,33 @@
         const b = document.createElement('button');
         b.className = 'chip';
         b.innerHTML = '<b></b><span></span>';
-        b.addEventListener('click', () => { mode = i; renderAll(); });
+        b.addEventListener('click', () => { mode = i; renderAll(true); });
         row.appendChild(b);
       });
     }
     [...row.children].forEach((b, i) => {
       const m = MODES[i];
       const stopped = shownMph < STOP_MPH;
-      const v = stopped ? (m.kind === 'time' ? '--' : '0') :
-        (m.kind === 'time' ? fmtTime(m.calc(shownMph)) : Math.round(m.calc(shownMph)).toString());
       b.classList.toggle('on', i === mode);
-      b.querySelector('b').textContent = v;
+      b.querySelector('b').textContent = stopped ? (m.kind === 'time' ? '--' : '0') : formatValue(m, shownMph);
       b.querySelector('span').textContent = m.short;
     });
   }
   function renderNeedle() {
-    const deg = angleFor(Math.min(shownMph, MAX_MPH));
-    $('needle').setAttribute('transform', `rotate(${deg.toFixed(2)} ${CX} ${CY})`);
+    $('needle').setAttribute('transform', `rotate(${angleFor(shownMph).toFixed(2)} ${CX} ${CY})`);
   }
-  function renderAll() { renderValue(); renderChips(); renderNeedle(); }
+  let dialMode = -1;
+  function renderAll(forceDial) {
+    if (forceDial || dialMode !== mode) { buildDial(); dialMode = mode; }
+    renderValue(); renderChips(); renderNeedle();
+  }
 
   // Smooth needle motion toward the latest reading.
-  function tick() {
+  function animate() {
     shownMph += (mph - shownMph) * 0.18;
     if (Math.abs(mph - shownMph) < 0.05) shownMph = mph;
-    renderNeedle();
-    requestAnimationFrame(tick);
+    renderNeedle(); renderValue(); renderChips();
+    requestAnimationFrame(animate);
   }
 
   // --- GPS ---
@@ -226,7 +243,6 @@
     $('status').textContent = `GPS ±${Math.round(c.accuracy * 3.28084)} ft`;
     $('status').classList.add('live');
     $('error').textContent = '';
-    renderAll();
   }
   function onError(err) {
     const msgs = {
@@ -243,15 +259,15 @@
     $('start').disabled = true; $('start').textContent = 'Live';
     $('status').textContent = 'Finding GPS...';
     try { await navigator.wakeLock?.request('screen'); } catch (_) {}
-    watchId = navigator.geolocation.watchPosition(onFix, onError, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+    navigator.geolocation.watchPosition(onFix, onError, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
   }
 
   $('start').addEventListener('click', start);
-  $('value').parentElement.addEventListener('click', () => { mode = (mode + 1) % MODES.length; renderAll(); });
+  $('readout').addEventListener('click', () => { mode = (mode + 1) % MODES.length; renderAll(true); });
 
-  buildGauge();
-  renderAll();
-  requestAnimationFrame(tick);
+  buildArcs();
+  renderAll(true);
+  requestAnimationFrame(animate);
 </script>
 </body>
 </html>
