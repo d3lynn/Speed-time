@@ -14,7 +14,7 @@
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    background: radial-gradient(120% 75% at 50% 38%, #111419 0%, var(--bg) 62%);
+    background: radial-gradient(120% 75% at 50% 38%, #12161b 0%, var(--bg) 62%);
     color: var(--fg);
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
     display: flex; flex-direction: column;
@@ -30,7 +30,7 @@
   }
   #start:disabled { background: var(--line); color: var(--dim); }
   #dial { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
-  #gauge { width: min(92vw, 60vh, 460px); height: auto; display: block; }
+  #gauge { width: min(92vw, 60vh, 470px); height: auto; display: block; }
   #readout { text-align: center; }
   #value { font-size: clamp(64px, 22vw, 116px); font-weight: 700; line-height: .95; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
   #unit { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--blue-hi); margin-top: 6px; }
@@ -55,35 +55,86 @@
 <div id="dial">
   <svg id="gauge" viewBox="0 0 300 300" role="img" aria-label="Speedometer">
     <defs>
-      <radialGradient id="face" cx="50%" cy="35%" r="70%">
-        <stop offset="0" stop-color="#15181d"/>
-        <stop offset="1" stop-color="#040506"/>
-      </radialGradient>
-      <linearGradient id="bezel" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#4a525e"/>
-        <stop offset=".45" stop-color="#101318"/>
-        <stop offset="1" stop-color="#343b46"/>
+      <!-- Chrome bezel -->
+      <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#e8ebf0"/>
+        <stop offset=".22" stop-color="#7b838e"/>
+        <stop offset=".42" stop-color="#1b1f25"/>
+        <stop offset=".6" stop-color="#9aa3ae"/>
+        <stop offset=".8" stop-color="#2a2f37"/>
+        <stop offset="1" stop-color="#c9ced6"/>
       </linearGradient>
+      <!-- Dial face -->
+      <radialGradient id="face" cx="50%" cy="38%" r="72%">
+        <stop offset="0" stop-color="#1d2228"/>
+        <stop offset=".65" stop-color="#0a0c0f"/>
+        <stop offset="1" stop-color="#020304"/>
+      </radialGradient>
+      <!-- Vignette -->
+      <radialGradient id="vignette" cx="50%" cy="50%" r="50%">
+        <stop offset=".7" stop-color="#000" stop-opacity="0"/>
+        <stop offset="1" stop-color="#000" stop-opacity=".6"/>
+      </radialGradient>
+      <!-- Needle body -->
+      <linearGradient id="needle" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ff6a2b"/>
+        <stop offset=".35" stop-color="#f4f6f8"/>
+        <stop offset="1" stop-color="#5b6370"/>
+      </linearGradient>
+      <!-- Hub -->
+      <radialGradient id="hub" cx="40%" cy="35%" r="65%">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset=".4" stop-color="#8b94a1"/>
+        <stop offset="1" stop-color="#14171c"/>
+      </radialGradient>
+      <!-- Grain texture -->
+      <filter id="grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch" result="n"/>
+        <feColorMatrix type="saturate" values="0" in="n" result="g"/>
+        <feComponentTransfer in="g"><feFuncA type="linear" slope=".09"/></feComponentTransfer>
+        <feComposite in2="SourceGraphic" operator="in"/>
+      </filter>
       <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="2.2" result="b"/>
+        <feGaussianBlur stdDeviation="3.5" result="b"/>
         <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
+      <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="1.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".7"/>
+      </filter>
     </defs>
-    <circle cx="150" cy="150" r="147" fill="url(#bezel)"/>
-    <circle cx="150" cy="150" r="139" fill="#000"/>
-    <circle cx="150" cy="150" r="137" fill="url(#face)"/>
-    <g id="arcs"></g>
+
+    <!-- Bezel and face -->
+    <circle cx="150" cy="150" r="148" fill="url(#chrome)"/>
+    <circle cx="150" cy="150" r="142" fill="#050607"/>
+    <circle cx="150" cy="150" r="138" fill="url(#face)"/>
+    <circle cx="150" cy="150" r="138" fill="#fff" filter="url(#grain)"/>
+
+    <!-- Illuminated scale -->
+    <g id="arcs" filter="url(#softGlow)"></g>
+
+    <!-- Ticks and numerals -->
     <g id="minor"></g>
-    <g id="major"></g>
-    <g id="labels" font-family="inherit" font-weight="600"></g>
-    <text id="dialUnit" x="150" y="206" text-anchor="middle" fill="#5fa8ff" font-size="12" letter-spacing="1.5"></text>
-    <text x="150" y="232" text-anchor="middle" fill="#3b4350" font-size="9" letter-spacing="3">SPEED TIME</text>
-    <g id="needle" filter="url(#glow)">
-      <polygon points="150,40 152.2,150 147.8,150" fill="#f2f4f7"/>
-      <polygon points="150,150 152.2,172 147.8,172" fill="#5fa8ff"/>
-      <circle cx="150" cy="150" r="8" fill="#1c69d4"/>
-      <circle cx="150" cy="150" r="3" fill="#f2f4f7"/>
+    <g id="major" filter="url(#softGlow)"></g>
+    <g id="labels" font-family="'Helvetica Neue', 'Arial Narrow', Arial, sans-serif" font-weight="700"></g>
+
+    <!-- Dial text -->
+    <text id="dialUnit" x="150" y="196" text-anchor="middle" fill="#7fbcff" font-size="12" font-weight="600" letter-spacing="1.8" font-family="'Helvetica Neue', Arial, sans-serif"></text>
+    <text x="150" y="222" text-anchor="middle" fill="#3b4350" font-size="8" letter-spacing="3.5" font-family="'Helvetica Neue', Arial, sans-serif">SPEED TIME</text>
+
+    <!-- Vignette -->
+    <circle cx="150" cy="150" r="138" fill="url(#vignette)"/>
+
+    <!-- Needle -->
+    <g id="needle" filter="url(#shadow)">
+      <polygon points="150,36 153,150 147,150" fill="url(#needle)"/>
+      <polygon points="150,150 152.5,176 147.5,176" fill="#5b6370"/>
     </g>
+    <circle cx="150" cy="150" r="9" fill="url(#hub)" filter="url(#shadow)"/>
+    <circle cx="150" cy="150" r="3" fill="#0b0d10"/>
   </svg>
 </div>
 
@@ -104,13 +155,13 @@
   const STOP_MPH = 1;
   const range = (a, b, s) => { const r = []; for (let v = a; v <= b + 1e-9; v += s) r.push(v); return r; };
 
-  // Each mode: unit name, dial ticks (positions expressed in mph), and the value shown at each tick.
+  // Each mode: unit name, dial ticks (positions in mph), and the value shown at each tick.
   const MODES = [
-    { name: 'Minutes per 10 miles', short: 'min/10 mi', kind: 'time',  calc: m => 600 / m,            ticks: [20, 30, 40, 60, 80, 100, 120, 140] },
-    { name: 'Minutes per mile',     short: 'min/mi',    kind: 'time',  calc: m => 60 / m,             ticks: range(20, 140, 20) },
-    { name: 'Minutes per km',       short: 'min/km',    kind: 'time',  calc: m => 60 / (m * KM),      ticks: range(20, 140, 20) },
-    { name: 'Miles per hour',       short: 'mph',       kind: 'speed', calc: m => m,                  ticks: range(0, 140, 20) },
-    { name: 'Kilometers per hour',  short: 'km/h',      kind: 'speed', calc: m => m * KM,             ticks: range(0, 220, 20).map(k => k / KM) },
+    { name: 'Minutes per 10 miles', short: 'min/10 mi', kind: 'time',  calc: m => 600 / m,        ticks: [20, 30, 40, 60, 80, 100, 120, 140] },
+    { name: 'Minutes per mile',     short: 'min/mi',    kind: 'time',  calc: m => 60 / m,         ticks: range(20, 140, 20) },
+    { name: 'Minutes per km',       short: 'min/km',    kind: 'time',  calc: m => 60 / (m * KM),  ticks: range(20, 140, 20) },
+    { name: 'Miles per hour',       short: 'mph',       kind: 'speed', calc: m => m,              ticks: range(0, 140, 20) },
+    { name: 'Kilometers per hour',  short: 'km/h',      kind: 'speed', calc: m => m * KM,         ticks: range(0, 220, 20).map(k => k / KM) },
   ];
 
   let mode = 0, mph = 0, shownMph = 0;
@@ -139,20 +190,22 @@
     return m.kind === 'time' ? fmtTime(v) : Math.round(v).toString();
   }
 
-  // Static arcs: blue scale up to 120 mph, red redline 120 to 140.
+  // Illuminated scale band: blue to 120 mph, red redline 120 to 140.
   function buildArcs() {
     const g = $('arcs');
-    const band = (from, to, color, w, r) => {
+    const band = (from, to, color, w, r, op) => {
       const [x1, y1] = pt(angleFor(from), r), [x2, y2] = pt(angleFor(to), r);
       const large = (angleFor(to) - angleFor(from)) > 180 ? 1 : 0;
-      el('path', { d: `M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2}`, fill: 'none', stroke: color, 'stroke-width': w }, g);
+      el('path', { d: `M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2}`, fill: 'none', stroke: color, 'stroke-width': w, 'stroke-opacity': op ?? 1, 'stroke-linecap': 'butt' }, g);
     };
-    band(0, MAX_MPH, '#1a1f27', 3, 124);
-    band(0, 120, '#1c69d4', 3, 124);
-    band(120, MAX_MPH, '#e10600', 3.5, 124);
+    band(0, MAX_MPH, '#1d232c', 4, 122);           // track
+    band(0, 120, '#1c69d4', 4, 122, .55);          // blue glow
+    band(0, 120, '#5fa8ff', 1.4, 122);             // bright core
+    band(120, MAX_MPH, '#ff2a1a', 4.5, 122);       // redline glow
+    band(120, MAX_MPH, '#ff6a55', 1.4, 122);
   }
 
-  // Ticks and labels follow the selected unit.
+  // Ticks and numerals follow the selected unit.
   function buildDial() {
     const m = MODES[mode];
     const major = $('major'), minor = $('minor'), labels = $('labels');
@@ -162,19 +215,19 @@
     for (let v = 0; v <= MAX_MPH; v += 5) {
       if (isMajor(v)) continue;
       const deg = angleFor(v);
-      const [x1, y1] = pt(deg, 116), [x2, y2] = pt(deg, 124);
-      el('line', { x1, y1, x2, y2, stroke: v >= 120 ? '#e10600' : '#8a93a0', 'stroke-width': 1, 'stroke-linecap': 'round' }, minor);
+      const [x1, y1] = pt(deg, 112), [x2, y2] = pt(deg, 118);
+      el('line', { x1, y1, x2, y2, stroke: v >= 120 ? '#ff4a3a' : '#6d7682', 'stroke-width': 1, 'stroke-linecap': 'round' }, minor);
     }
     m.ticks.forEach(v => {
       const deg = angleFor(v);
-      const [x1, y1] = pt(deg, 108), [x2, y2] = pt(deg, 126);
+      const [x1, y1] = pt(deg, 104), [x2, y2] = pt(deg, 118);
       const isRed = v >= 120 - 0.01;
-      el('line', { x1, y1, x2, y2, stroke: isRed ? '#e10600' : '#f2f4f7', 'stroke-width': 2.6, 'stroke-linecap': 'round' }, major);
-      const [tx, ty] = pt(deg, 92);
+      el('line', { x1, y1, x2, y2, stroke: isRed ? '#ff4a3a' : '#f4f6f8', 'stroke-width': 2.8, 'stroke-linecap': 'round' }, major);
+      const [tx, ty] = pt(deg, 88);
       const t = el('text', {
         x: tx, y: ty + 5, 'text-anchor': 'middle',
-        fill: isRed ? '#e10600' : '#f2f4f7',
-        'font-size': m.kind === 'time' ? 12 : 16
+        fill: isRed ? '#ff4a3a' : '#f4f6f8',
+        'font-size': m.kind === 'time' ? 11 : 15
       }, labels);
       t.textContent = formatValue(m, v);
     });
