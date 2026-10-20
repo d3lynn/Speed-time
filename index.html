@@ -6,15 +6,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Speed Time">
-<meta name="theme-color" content="#050607">
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Speed%20Time%22%2C%22short_name%22%3A%22Speed%20Time%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050607%22%2C%22theme_color%22%3A%22%23050607%22%7D">
+<meta name="theme-color" content="#050505">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Speed%20Time%22%2C%22short_name%22%3A%22Speed%20Time%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050505%22%2C%22theme_color%22%3A%22%23050505%22%7D">
 <title>Speed Time</title>
 <style>
-  :root { color-scheme: dark; --bg:#050607; --panel:#0c0f13; --line:#1b2028; --fg:#f2f4f7; --dim:#6f7886; --blue:#1c69d4; --blue-hi:#5fa8ff; --red:#e10600; }
+  :root { color-scheme: dark; --bg:#050505; --panel:#0d0d0d; --line:#222; --fg:#f1efe9; --dim:#7d7a72; --amber:#ff5a1f; }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    background: radial-gradient(120% 75% at 50% 38%, #12161b 0%, var(--bg) 62%);
+    background: radial-gradient(120% 75% at 50% 38%, #141414 0%, var(--bg) 62%);
     color: var(--fg);
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
     display: flex; flex-direction: column;
@@ -23,17 +23,18 @@
   }
   header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   #status { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
-  #status.live { color: var(--blue-hi); }
+  #status.live { color: var(--amber); }
   #start {
-    background: var(--blue); color: #fff; border: 0; border-radius: 999px;
-    padding: 10px 22px; font-size: 15px; font-weight: 600; letter-spacing: .02em; cursor: pointer;
+    background: var(--amber); color: #120801; border: 0; border-radius: 999px;
+    padding: 10px 22px; font-size: 15px; font-weight: 700; letter-spacing: .02em; cursor: pointer;
   }
   #start:disabled { background: var(--line); color: var(--dim); }
   #dial { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
-  #gauge { width: min(92vw, 60vh, 470px); height: auto; display: block; }
+  #gauge { width: min(92vw, 60vh, 470px); height: auto; display: block; cursor: default; }
+  #trip { cursor: pointer; }
   #readout { text-align: center; }
   #value { font-size: clamp(64px, 22vw, 116px); font-weight: 700; line-height: .95; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
-  #unit { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--blue-hi); margin-top: 6px; }
+  #unit { font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin-top: 6px; }
   #units { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 16px; }
   .chip {
     background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
@@ -41,8 +42,8 @@
   }
   .chip b { display: block; font-size: 16px; color: var(--fg); font-variant-numeric: tabular-nums; }
   .chip span { font-size: 10px; letter-spacing: .04em; }
-  .chip.on { border-color: var(--blue-hi); color: var(--blue-hi); }
-  #error { min-height: 18px; margin-top: 10px; font-size: 13px; color: var(--red); text-align: center; }
+  .chip.on { border-color: var(--amber); color: var(--amber); }
+  #error { min-height: 18px; margin-top: 10px; font-size: 13px; color: #ff6a55; text-align: center; }
 </style>
 </head>
 <body>
@@ -53,88 +54,55 @@
 </header>
 
 <div id="dial">
-  <svg id="gauge" viewBox="0 0 300 300" role="img" aria-label="Speedometer">
+  <svg id="gauge" viewBox="0 0 300 300" role="img" aria-label="Vintage speedometer">
     <defs>
-      <!-- Chrome bezel -->
-      <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#e8ebf0"/>
-        <stop offset=".22" stop-color="#7b838e"/>
-        <stop offset=".42" stop-color="#1b1f25"/>
-        <stop offset=".6" stop-color="#9aa3ae"/>
-        <stop offset=".8" stop-color="#2a2f37"/>
-        <stop offset="1" stop-color="#c9ced6"/>
-      </linearGradient>
-      <!-- Dial face -->
-      <radialGradient id="face" cx="50%" cy="38%" r="72%">
-        <stop offset="0" stop-color="#1d2228"/>
-        <stop offset=".65" stop-color="#0a0c0f"/>
-        <stop offset="1" stop-color="#020304"/>
+      <radialGradient id="face" cx="50%" cy="40%" r="70%">
+        <stop offset="0" stop-color="#101010"/>
+        <stop offset="1" stop-color="#030303"/>
       </radialGradient>
-      <!-- Vignette -->
-      <radialGradient id="vignette" cx="50%" cy="50%" r="50%">
-        <stop offset=".7" stop-color="#000" stop-opacity="0"/>
-        <stop offset="1" stop-color="#000" stop-opacity=".6"/>
-      </radialGradient>
-      <!-- Needle body -->
-      <linearGradient id="needle" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#ff6a2b"/>
-        <stop offset=".35" stop-color="#f4f6f8"/>
-        <stop offset="1" stop-color="#5b6370"/>
+      <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#3a3a3a"/>
+        <stop offset="1" stop-color="#0a0a0a"/>
       </linearGradient>
-      <!-- Hub -->
       <radialGradient id="hub" cx="40%" cy="35%" r="65%">
-        <stop offset="0" stop-color="#ffffff"/>
-        <stop offset=".4" stop-color="#8b94a1"/>
-        <stop offset="1" stop-color="#14171c"/>
+        <stop offset="0" stop-color="#3a3a3a"/>
+        <stop offset="1" stop-color="#050505"/>
       </radialGradient>
-      <!-- Grain texture -->
-      <filter id="grain" x="0" y="0" width="100%" height="100%">
-        <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch" result="n"/>
-        <feColorMatrix type="saturate" values="0" in="n" result="g"/>
-        <feComponentTransfer in="g"><feFuncA type="linear" slope=".09"/></feComponentTransfer>
-        <feComposite in2="SourceGraphic" operator="in"/>
-      </filter>
-      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="3.5" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-      <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="1.4" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
       <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity=".7"/>
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity=".8"/>
       </filter>
     </defs>
 
     <!-- Bezel and face -->
-    <circle cx="150" cy="150" r="148" fill="url(#chrome)"/>
-    <circle cx="150" cy="150" r="142" fill="#050607"/>
-    <circle cx="150" cy="150" r="138" fill="url(#face)"/>
-    <circle cx="150" cy="150" r="138" fill="#fff" filter="url(#grain)"/>
+    <circle cx="150" cy="150" r="148" fill="url(#ring)"/>
+    <circle cx="150" cy="150" r="141" fill="#000"/>
+    <circle cx="150" cy="150" r="136" fill="url(#face)"/>
 
-    <!-- Illuminated scale -->
-    <g id="arcs" filter="url(#softGlow)"></g>
-
-    <!-- Ticks and numerals -->
+    <!-- Scale -->
     <g id="minor"></g>
-    <g id="major" filter="url(#softGlow)"></g>
+    <g id="major"></g>
     <g id="labels" font-family="'Helvetica Neue', 'Arial Narrow', Arial, sans-serif" font-weight="700"></g>
 
-    <!-- Dial text -->
-    <text id="dialUnit" x="150" y="196" text-anchor="middle" fill="#7fbcff" font-size="12" font-weight="600" letter-spacing="1.8" font-family="'Helvetica Neue', Arial, sans-serif"></text>
-    <text x="150" y="222" text-anchor="middle" fill="#3b4350" font-size="8" letter-spacing="3.5" font-family="'Helvetica Neue', Arial, sans-serif">SPEED TIME</text>
+    <!-- Vehicle odometer (six digits) -->
+    <g id="odo" font-family="'Courier New', Menlo, monospace" font-weight="700"></g>
 
-    <!-- Vignette -->
-    <circle cx="150" cy="150" r="138" fill="url(#vignette)"/>
+    <!-- Trip odometer (tap to reset) -->
+    <g id="trip">
+      <rect x="110" y="178" width="80" height="22" rx="3" fill="#000" stroke="#1d1d1d"/>
+      <g id="tripDigits" font-family="'Courier New', Menlo, monospace" font-weight="700"></g>
+    </g>
+
+    <!-- Unit and brand text -->
+    <text id="dialUnit" x="150" y="226" text-anchor="middle" fill="#f1efe9" font-size="13" font-weight="700" letter-spacing="1.2" font-family="'Helvetica Neue', Arial, sans-serif"></text>
+    <text x="150" y="242" text-anchor="middle" fill="#6a675f" font-size="7.5" letter-spacing="2.4" font-family="'Helvetica Neue', Arial, sans-serif">SPEED TIME</text>
 
     <!-- Needle -->
     <g id="needle" filter="url(#shadow)">
-      <polygon points="150,36 153,150 147,150" fill="url(#needle)"/>
-      <polygon points="150,150 152.5,176 147.5,176" fill="#5b6370"/>
+      <polygon points="150,40 152.2,150 147.8,150" fill="#ff5a1f"/>
+      <polygon points="150,150 151.5,162 148.5,162" fill="#ff5a1f"/>
     </g>
     <circle cx="150" cy="150" r="9" fill="url(#hub)" filter="url(#shadow)"/>
-    <circle cx="150" cy="150" r="3" fill="#0b0d10"/>
+    <circle cx="150" cy="150" r="2.5" fill="#050505"/>
   </svg>
 </div>
 
@@ -147,25 +115,27 @@
 <div id="error"></div>
 
 <script>
-  const MAX_MPH = 140;
+  const MAX_MPH = 180;
   const START_DEG = -135, SWEEP = 270;   // 0 degrees = 12 o'clock
   const CX = 150, CY = 150;
   const MPS_TO_MPH = 2.236936;
   const KM = 1.609344;
   const STOP_MPH = 1;
+  const ODO_KEY = 'speedtime.odometer', TRIP_KEY = 'speedtime.trip';
   const range = (a, b, s) => { const r = []; for (let v = a; v <= b + 1e-9; v += s) r.push(v); return r; };
 
   // Each mode: unit name, dial ticks (positions in mph), and the value shown at each tick.
   const MODES = [
-    { name: 'Minutes per 10 miles', short: 'min/10 mi', kind: 'time',  calc: m => 600 / m,        ticks: [20, 30, 40, 60, 80, 100, 120, 140] },
-    { name: 'Minutes per mile',     short: 'min/mi',    kind: 'time',  calc: m => 60 / m,         ticks: range(20, 140, 20) },
-    { name: 'Minutes per km',       short: 'min/km',    kind: 'time',  calc: m => 60 / (m * KM),  ticks: range(20, 140, 20) },
-    { name: 'Miles per hour',       short: 'mph',       kind: 'speed', calc: m => m,              ticks: range(0, 140, 20) },
-    { name: 'Kilometers per hour',  short: 'km/h',      kind: 'speed', calc: m => m * KM,         ticks: range(0, 220, 20).map(k => k / KM) },
+    { name: 'Minutes per 10 miles', short: 'MIN/10 MI', kind: 'time',  calc: m => 600 / m,        ticks: [20, 30, 40, 60, 90, 120, 150, 180] },
+    { name: 'Minutes per mile',     short: 'MIN/MI',    kind: 'time',  calc: m => 60 / m,         ticks: range(30, 180, 30) },
+    { name: 'Minutes per km',       short: 'MIN/KM',    kind: 'time',  calc: m => 60 / (m * KM),  ticks: range(30, 180, 30) },
+    { name: 'Miles per hour',       short: 'MPH',       kind: 'speed', calc: m => m,              ticks: range(0, 180, 30) },
+    { name: 'Kilometers per hour',  short: 'KM/H',      kind: 'speed', calc: m => m * KM,         ticks: range(0, 300, 30).map(k => k / KM) },
   ];
 
   let mode = 0, mph = 0, shownMph = 0;
   let lastFix = null, recent = [];
+  let odo = 11020, trip = 0;   // miles
   const $ = id => document.getElementById(id);
   const NS = 'http://www.w3.org/2000/svg';
 
@@ -190,21 +160,6 @@
     return m.kind === 'time' ? fmtTime(v) : Math.round(v).toString();
   }
 
-  // Illuminated scale band: blue to 120 mph, red redline 120 to 140.
-  function buildArcs() {
-    const g = $('arcs');
-    const band = (from, to, color, w, r, op) => {
-      const [x1, y1] = pt(angleFor(from), r), [x2, y2] = pt(angleFor(to), r);
-      const large = (angleFor(to) - angleFor(from)) > 180 ? 1 : 0;
-      el('path', { d: `M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2}`, fill: 'none', stroke: color, 'stroke-width': w, 'stroke-opacity': op ?? 1, 'stroke-linecap': 'butt' }, g);
-    };
-    band(0, MAX_MPH, '#1d232c', 4, 122);           // track
-    band(0, 120, '#1c69d4', 4, 122, .55);          // blue glow
-    band(0, 120, '#5fa8ff', 1.4, 122);             // bright core
-    band(120, MAX_MPH, '#ff2a1a', 4.5, 122);       // redline glow
-    band(120, MAX_MPH, '#ff6a55', 1.4, 122);
-  }
-
   // Ticks and numerals follow the selected unit.
   function buildDial() {
     const m = MODES[mode];
@@ -215,24 +170,70 @@
     for (let v = 0; v <= MAX_MPH; v += 5) {
       if (isMajor(v)) continue;
       const deg = angleFor(v);
-      const [x1, y1] = pt(deg, 112), [x2, y2] = pt(deg, 118);
-      el('line', { x1, y1, x2, y2, stroke: v >= 120 ? '#ff4a3a' : '#6d7682', 'stroke-width': 1, 'stroke-linecap': 'round' }, minor);
+      const [x1, y1] = pt(deg, 118), [x2, y2] = pt(deg, 126);
+      el('line', { x1, y1, x2, y2, stroke: '#8a877f', 'stroke-width': 1.2, 'stroke-linecap': 'butt' }, minor);
     }
     m.ticks.forEach(v => {
       const deg = angleFor(v);
-      const [x1, y1] = pt(deg, 104), [x2, y2] = pt(deg, 118);
-      const isRed = v >= 120 - 0.01;
-      el('line', { x1, y1, x2, y2, stroke: isRed ? '#ff4a3a' : '#f4f6f8', 'stroke-width': 2.8, 'stroke-linecap': 'round' }, major);
-      const [tx, ty] = pt(deg, 88);
+      const [x1, y1] = pt(deg, 110), [x2, y2] = pt(deg, 128);
+      el('line', { x1, y1, x2, y2, stroke: '#f1efe9', 'stroke-width': 3, 'stroke-linecap': 'butt' }, major);
+      const [tx, ty] = pt(deg, 94);
       const t = el('text', {
-        x: tx, y: ty + 5, 'text-anchor': 'middle',
-        fill: isRed ? '#ff4a3a' : '#f4f6f8',
-        'font-size': m.kind === 'time' ? 11 : 15
+        x: tx, y: ty + 5, 'text-anchor': 'middle', fill: '#f1efe9',
+        'font-size': m.kind === 'time' ? 12 : 17
       }, labels);
       t.textContent = formatValue(m, v);
     });
     $('dialUnit').textContent = m.short;
   }
+
+  // Vehicle odometer: six digits, starts at 11,020 miles.
+  function buildOdo() {
+    const g = $('odo');
+    g.innerHTML = '';
+    const boxW = 19, gap = 4, n = 6;
+    const x0 = 150 - (n * boxW + (n - 1) * gap) / 2;
+    for (let i = 0; i < n; i++) {
+      const x = x0 + i * (boxW + gap);
+      el('rect', { x, y: 116, width: boxW, height: 26, rx: 3, fill: '#000', stroke: '#1d1d1d' }, g);
+      el('text', { x: x + boxW / 2, y: 135, 'text-anchor': 'middle', fill: '#f1efe9', 'font-size': 20, id: 'odo' + i }, g);
+    }
+  }
+  // Trip odometer: three digits and tenths.
+  function buildTrip() {
+    const g = $('tripDigits');
+    g.innerHTML = '';
+    const boxW = 16, gap = 3;
+    const x0 = 150 - (4 * boxW + 3 * gap) / 2;
+    for (let i = 0; i < 4; i++) {
+      const x = x0 + i * (boxW + gap);
+      el('text', { x: x + boxW / 2, y: 194, 'text-anchor': 'middle', fill: i === 3 ? '#ff5a1f' : '#f1efe9', 'font-size': 15, id: 'trip' + i }, g);
+    }
+    el('text', { x: x0 + 3 * (boxW + gap) - 2, y: 194, 'text-anchor': 'middle', fill: '#ff5a1f', 'font-size': 15 }, g).textContent = '';
+  }
+  function renderOdo() {
+    const digits = String(Math.floor(odo)).padStart(6, '0').slice(-6);
+    for (let i = 0; i < 6; i++) $('odo' + i).textContent = digits[i];
+    const t = String(Math.floor(trip * 10)).padStart(4, '0').slice(-4);
+    for (let i = 0; i < 4; i++) $('trip' + i).textContent = t[i];
+  }
+
+  // Persist odometer and trip on the device only.
+  function loadState() {
+    try {
+      const o = parseFloat(localStorage.getItem(ODO_KEY));
+      const t = parseFloat(localStorage.getItem(TRIP_KEY));
+      if (isFinite(o)) odo = o;
+      if (isFinite(t)) trip = t;
+    } catch (_) {}
+  }
+  function saveState() {
+    try {
+      localStorage.setItem(ODO_KEY, String(odo));
+      localStorage.setItem(TRIP_KEY, String(trip));
+    } catch (_) {}
+  }
+  function resetTrip() { trip = 0; saveState(); renderOdo(); }
 
   function renderValue() {
     const m = MODES[mode];
@@ -288,7 +289,14 @@
     let mps = null;
     if (c.speed != null && c.speed >= 0) mps = c.speed;
     else if (lastFix && t > lastFix.t) mps = haversine(lastFix, { lat: c.latitude, lon: c.longitude }) / ((t - lastFix.t) / 1000);
+
+    // Distance since the last fix, counted only while moving and for short gaps.
+    if (lastFix && t > lastFix.t && (t - lastFix.t) < 10000 && mps && mps > 0) {
+      const miles = mps * ((t - lastFix.t) / 1000) / 1609.344;
+      odo += miles; trip += miles;
+    }
     lastFix = { lat: c.latitude, lon: c.longitude, t };
+
     if (mps == null) return;
     if (mps < 0.45) mps = 0;
     recent.push(mps); if (recent.length > 3) recent.shift();
@@ -296,6 +304,8 @@
     $('status').textContent = `GPS ±${Math.round(c.accuracy * 3.28084)} ft`;
     $('status').classList.add('live');
     $('error').textContent = '';
+    renderOdo();
+    saveState();
   }
   function onError(err) {
     const msgs = {
@@ -317,8 +327,12 @@
 
   $('start').addEventListener('click', start);
   $('readout').addEventListener('click', () => { mode = (mode + 1) % MODES.length; renderAll(true); });
+  $('trip').addEventListener('click', resetTrip);
 
-  buildArcs();
+  loadState();
+  buildOdo();
+  buildTrip();
+  renderOdo();
   renderAll(true);
   requestAnimationFrame(animate);
 </script>
