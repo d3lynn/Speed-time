@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Speed Time">
+<meta name="theme-color" content="#07090c">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Speed%20Time%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2307090c%22%2C%22theme_color%22%3A%22%2307090c%22%7D">
+<title>Speed Time</title>
+<style>
+  :root { color-scheme: dark; --bg:#07090c; --panel:#0f1318; --line:#1d242e; --fg:#f4f6f8; --dim:#7b8594; --accent:#ffb400; --red:#ff3b2f; --blue:#4da3ff; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(120% 80% at 50% 35%, #141a22 0%, var(--bg) 60%);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    display: flex; flex-direction: column;
+    padding: calc(env(safe-area-inset-top) + 12px) max(16px, env(safe-area-inset-left)) calc(env(safe-area-inset-bottom) + 14px) max(16px, env(safe-area-inset-right));
+    -webkit-user-select: none; user-select: none; overflow: hidden;
+  }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  #status { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); font-variant-numeric: tabular-nums; }
+  #status.live { color: var(--accent); }
+  #start {
+    background: var(--accent); color: #111; border: 0; border-radius: 999px;
+    padding: 10px 22px; font-size: 15px; font-weight: 700; letter-spacing: .02em; cursor: pointer;
+  }
+  #start:disabled { background: var(--line); color: var(--dim); }
+  #dial { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  #gauge { width: min(92vw, 62vh, 460px); height: auto; display: block; }
+  #readout { text-align: center; margin-top: -2px; }
+  #value { font-size: clamp(64px, 22vw, 120px); font-weight: 700; line-height: .95; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+  #unit { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-top: 6px; }
+  #units { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 16px; }
+  .chip {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 9px 4px; text-align: center; color: var(--dim); font: inherit; cursor: pointer;
+  }
+  .chip b { display: block; font-size: 17px; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .chip span { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; }
+  .chip.on { border-color: var(--accent); color: var(--accent); }
+  #error { min-height: 18px; margin-top: 10px; font-size: 13px; color: var(--red); text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <span id="status">Ready</span>
+  <button id="start">Start</button>
+</header>
+
+<div id="dial">
+  <svg id="gauge" viewBox="0 0 300 300" role="img" aria-label="Speedometer">
+    <defs>
+      <radialGradient id="face" cx="50%" cy="40%" r="65%">
+        <stop offset="0" stop-color="#1a2029"/>
+        <stop offset="1" stop-color="#07090c"/>
+      </radialGradient>
+      <linearGradient id="bezel" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#3b4450"/>
+        <stop offset=".5" stop-color="#11151b"/>
+        <stop offset="1" stop-color="#2a313b"/>
+      </linearGradient>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <circle cx="150" cy="150" r="146" fill="url(#bezel)"/>
+    <circle cx="150" cy="150" r="138" fill="url(#face)"/>
+    <g id="arcs"></g>
+    <g id="ticks"></g>
+    <g id="labels"></g>
+    <g id="redline"></g>
+    <text x="150" y="208" text-anchor="middle" fill="#7b8594" font-size="11" letter-spacing="3">MPH</text>
+    <g id="needle" filter="url(#glow)">
+      <polygon points="150,44 154,150 146,150" fill="#ff3b2f"/>
+      <circle cx="150" cy="150" r="7" fill="#ff3b2f"/>
+    </g>
+    <circle cx="150" cy="150" r="3" fill="#07090c"/>
+  </svg>
+</div>
+
+<div id="readout">
+  <div id="value">--</div>
+  <div id="unit">Minutes per 10 miles</div>
+</div>
+
+<div id="units"></div>
+<div id="error"></div>
+
+<script>
+  const MAX_MPH = 140;
+  const START_DEG = -135, SWEEP = 270;   // gauge sweep, 0 degrees = 12 o'clock
+  const CX = 150, CY = 150;
+  const MPS_TO_MPH = 2.236936;
+  const KM = 1.609344;
+  const STOP_MPH = 1;
+
+  const MODES = [
+    { name: 'Minutes per 10 miles', short: 'min/10 mi', kind: 'time',  calc: m => 600 / m },
+    { name: 'Minutes per mile',     short: 'min/mi',    kind: 'time',  calc: m => 60 / m },
+    { name: 'Minutes per km',       short: 'min/km',    kind: 'time',  calc: m => 60 / (m * KM) },
+    { name: 'Miles per hour',       short: 'mph',       kind: 'speed', calc: m => m },
+    { name: 'Kilometers per hour',  short: 'km/h',      kind: 'speed', calc: m => m * KM },
+  ];
+
+  let mode = 0, mph = 0, shownMph = 0;
+  let lastFix = null, recent = [];
+  let watchId = null;
+  const $ = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+
+  // --- Gauge geometry ---
+  const angleFor = v => START_DEG + SWEEP * (v / MAX_MPH);
+  const pt = (deg, r) => {
+    const rad = deg * Math.PI / 180;
+    return [CX + r * Math.sin(rad), CY - r * Math.cos(rad)];
+  };
+  function el(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    parent.appendChild(n);
+    return n;
+  }
+  function buildGauge() {
+    const arcs = $('arcs'), ticks = $('ticks'), labels = $('labels'), red = $('redline');
+    // Coloured track up to the redline at 120 mph
+    const band = (from, to, color, w) => {
+      const [x1, y1] = pt(angleFor(from), 118), [x2, y2] = pt(angleFor(to), 118);
+      const large = (angleFor(to) - angleFor(from)) > 180 ? 1 : 0;
+      el('path', { d: `M${x1},${y1} A118,118 0 ${large} 1 ${x2},${y2}`, fill: 'none', stroke: color, 'stroke-width': w, 'stroke-linecap': 'butt' }, arcs);
+    };
+    band(0, MAX_MPH, '#1f2631', 6);
+    band(0, 100, '#e8edf3', 1.2);
+    band(120, MAX_MPH, '#ff3b2f', 6);
+    el('path', { d: '', fill: 'none' }, arcs).remove();
+
+    for (let v = 0; v <= MAX_MPH; v += 5) {
+      const major = v % 20 === 0;
+      const deg = angleFor(v);
+      const [x1, y1] = pt(deg, major ? 112 : 118);
+      const [x2, y2] = pt(deg, 130);
+      el('line', { x1, y1, x2, y2, stroke: v >= 120 ? '#ff3b2f' : '#e8edf3', 'stroke-width': major ? 2.4 : 1, 'stroke-linecap': 'round' }, ticks);
+      if (major) {
+        const [tx, ty] = pt(deg, 96);
+        const t = el('text', { x: tx, y: ty + 5, 'text-anchor': 'middle', fill: v >= 120 ? '#ff3b2f' : '#e8edf3', 'font-size': 15, 'font-weight': 700, 'font-family': 'inherit' }, labels);
+        t.textContent = v;
+      }
+    }
+  }
+
+  // --- Readout ---
+  function fmtTime(minutes) {
+    if (!isFinite(minutes) || minutes > 99) return '--';
+    const total = Math.round(minutes * 60);
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  }
+  function renderValue() {
+    const m = MODES[mode];
+    const stopped = shownMph < STOP_MPH;
+    let text;
+    if (stopped) text = m.kind === 'time' ? '--' : '0';
+    else {
+      const v = m.calc(shownMph);
+      text = m.kind === 'time' ? fmtTime(v) : Math.round(v).toString();
+    }
+    $('value').textContent = text;
+    $('unit').textContent = m.name;
+  }
+  function renderChips() {
+    const row = $('units');
+    if (!row.children.length) {
+      MODES.forEach((m, i) => {
+        const b = document.createElement('button');
+        b.className = 'chip';
+        b.innerHTML = '<b></b><span></span>';
+        b.addEventListener('click', () => { mode = i; renderAll(); });
+        row.appendChild(b);
+      });
+    }
+    [...row.children].forEach((b, i) => {
+      const m = MODES[i];
+      const stopped = shownMph < STOP_MPH;
+      const v = stopped ? (m.kind === 'time' ? '--' : '0') :
+        (m.kind === 'time' ? fmtTime(m.calc(shownMph)) : Math.round(m.calc(shownMph)).toString());
+      b.classList.toggle('on', i === mode);
+      b.querySelector('b').textContent = v;
+      b.querySelector('span').textContent = m.short;
+    });
+  }
+  function renderNeedle() {
+    const deg = angleFor(Math.min(shownMph, MAX_MPH));
+    $('needle').setAttribute('transform', `rotate(${deg.toFixed(2)} ${CX} ${CY})`);
+  }
+  function renderAll() { renderValue(); renderChips(); renderNeedle(); }
+
+  // Smooth needle motion toward the latest reading.
+  function tick() {
+    shownMph += (mph - shownMph) * 0.18;
+    if (Math.abs(mph - shownMph) < 0.05) shownMph = mph;
+    renderNeedle();
+    requestAnimationFrame(tick);
+  }
+
+  // --- GPS ---
+  function haversine(a, b) {
+    const R = 6371000, r = d => d * Math.PI / 180;
+    const dLat = r(b.lat - a.lat), dLon = r(b.lon - a.lon);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function onFix(pos) {
+    const c = pos.coords, t = pos.timestamp;
+    let mps = null;
+    if (c.speed != null && c.speed >= 0) mps = c.speed;
+    else if (lastFix && t > lastFix.t) mps = haversine(lastFix, { lat: c.latitude, lon: c.longitude }) / ((t - lastFix.t) / 1000);
+    lastFix = { lat: c.latitude, lon: c.longitude, t };
+    if (mps == null) return;
+    if (mps < 0.45) mps = 0;
+    recent.push(mps); if (recent.length > 3) recent.shift();
+    mph = (recent.reduce((a, b) => a + b, 0) / recent.length) * MPS_TO_MPH;
+    $('status').textContent = `GPS ±${Math.round(c.accuracy * 3.28084)} ft`;
+    $('status').classList.add('live');
+    $('error').textContent = '';
+    renderAll();
+  }
+  function onError(err) {
+    const msgs = {
+      1: 'Location is blocked. Turn on Settings > Privacy & Security > Location Services > Safari.',
+      2: 'No GPS signal yet.',
+      3: 'GPS is slow to respond. Still trying.'
+    };
+    $('error').textContent = msgs[err.code] || err.message;
+    $('status').textContent = 'No GPS';
+    $('status').classList.remove('live');
+  }
+  async function start() {
+    if (!('geolocation' in navigator)) { $('error').textContent = 'This browser cannot read location.'; return; }
+    $('start').disabled = true; $('start').textContent = 'Live';
+    $('status').textContent = 'Finding GPS...';
+    try { await navigator.wakeLock?.request('screen'); } catch (_) {}
+    watchId = navigator.geolocation.watchPosition(onFix, onError, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
+  }
+
+  $('start').addEventListener('click', start);
+  $('value').parentElement.addEventListener('click', () => { mode = (mode + 1) % MODES.length; renderAll(); });
+
+  buildGauge();
+  renderAll();
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>
